@@ -58,7 +58,7 @@ defmodule Images do
   @spec sort_images([String.t()]) :: [String.t()]
   def sort_images(list) do
     list
-      |> Enum.map(fn str -> [str, parse_string(Path.basename(str))] end)
+      |> Enum.map(fn str -> [str, parse_string(str)] end)
       |> Enum.sort(fn [_, a], [_, b] -> a < b end)
       |> Enum.map(fn [head | _tail] -> head end)
   end
