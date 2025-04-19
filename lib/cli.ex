@@ -30,8 +30,6 @@ defmodule Cli do
       end
     end
 
-    IO.puts(inspect(parsed.options.cut_area))
-
     %AppConfig.Cli{
       input: input,
       quality: parsed.options.quality,

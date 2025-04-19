@@ -4,7 +4,6 @@ defmodule Convert do
     image_list = Images.list_images(config) |> Images.sort_images()
 
     args_list = create_arg_list(image_list, config)
-    IO.puts(inspect(args_list))
     convert_cmd = &System.cmd(config.binaries.magick_path, &1)
     no_cpus = System.schedulers_online()
 
@@ -48,8 +47,3 @@ defmodule Convert do
   defp has_cut_area(%AppConfig.Area{} = area),
     do: area.x != 0 or area.y != 0 or area.width != 0 or area.height != 0
 end
-
-#        if (cutArea.top != 0 || cutArea.top != 0) args.push("-chop", `${cutArea.left}x${cutArea.top}`)
-#        if (cutArea.right) args.push("-gravity", "East", "-chop", `${cutArea.right}x0`)
-#        if (cutArea.bottom) args.push("-gravity", "South", "-chop", `0x${cutArea.bottom}`)
-#        if (cli.resize.width != 0 && cli.resize.height != 0) args.push("-resize", `${cli.resize.width}x${cli.resize.height}`)
