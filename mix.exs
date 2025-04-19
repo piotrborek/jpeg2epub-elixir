@@ -5,7 +5,7 @@ defmodule Jpeg2epub.MixProject do
     [
       app: :jpeg2epub,
 #      releases: releases(),
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.17",
       escript: escript(),
       start_permanent: Mix.env() == :prod,

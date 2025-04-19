@@ -6,14 +6,22 @@ defmodule Cli do
     cli = create_cli!()
     parsed = Optimus.parse!(cli, argv)
 
-    if parsed.flags.from_file and parsed.flags.from_directory, do: exit_with_error(cli, "Flags -I and -i cannot be used together.")
-    if not parsed.flags.from_file and not parsed.flags.from_directory, do: exit_with_error(cli, "Flag -i or -I is required.")
+    if parsed.flags.from_file and parsed.flags.from_directory,
+      do: exit_with_error(cli, "Flags -I and -i cannot be used together.")
+
+    if not parsed.flags.from_file and not parsed.flags.from_directory,
+      do: exit_with_error(cli, "Flag -i or -I is required.")
 
     input = parsed.args.input |> Path.absname() |> Path.expand()
-    if parsed.flags.from_file and not File.exists?(input), do: exit_with_error(cli, "File #{input |> Path.basename()} does not exists.")
-    if parsed.flags.from_directory and not File.exists?(input), do: exit_with_error(cli, "Directory #{input |> Path.basename()} does not exists.")
+
+    if parsed.flags.from_file and not File.exists?(input),
+      do: exit_with_error(cli, "File #{input |> Path.basename()} does not exists.")
+
+    if parsed.flags.from_directory and not File.exists?(input),
+      do: exit_with_error(cli, "Directory #{input |> Path.basename()} does not exists.")
 
     file = input <> ".epub"
+
     if File.exists?(file) do
       if parsed.flags.override do
         File.rm!(file)
@@ -22,9 +30,12 @@ defmodule Cli do
       end
     end
 
+    IO.puts(inspect(parsed.options.cut_area))
+
     %AppConfig.Cli{
       input: input,
       quality: parsed.options.quality,
+      cut_area: parsed.options.cut_area,
       from_file: parsed.flags.from_file,
       from_directory: parsed.flags.from_directory,
       keep_temp: parsed.flags.keep_temp,
@@ -37,6 +48,34 @@ defmodule Cli do
   defp exit_with_error(cli, text) do
     cli |> Optimus.Errors.format([text]) |> Utils.put_lines()
     System.halt(1)
+  end
+
+  @spec parse_cut_area(String.t()) :: AppConfig.Area.t()
+  defp parse_cut_area(s) do
+    area = s |> String.split() |> Enum.map(&Integer.parse/1)
+
+    cut_area =
+      with {x, _} <- Enum.at(area, 0),
+           {y, _} <- Enum.at(area, 1),
+           {width, _} <- Enum.at(area, 2),
+           {height, _} <- Enum.at(area, 3) do
+        %AppConfig.Area{
+          x: x,
+          y: y,
+          width: width,
+          height: height
+        }
+      else
+        _ ->
+          %AppConfig.Area{
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+          }
+      end
+
+    {:ok, cut_area}
   end
 
   @spec create_cli!() :: Optimus.t()
@@ -58,11 +97,11 @@ defmodule Cli do
       flags: [
         from_file: [
           short: "-i",
-          help: "Get input images from a file.",
+          help: "Get input images from a file."
         ],
         from_directory: [
           short: "-I",
-          help: "Get input images from a directory.",
+          help: "Get input images from a directory."
         ],
         keep_temp: [
           long: "--keep-temp",
@@ -84,6 +123,13 @@ defmodule Cli do
           parser: :integer,
           required: false,
           default: 90
+        ],
+        cut_area: [
+          long: "--cut",
+          help: "Cut area from images. Format: \"x y width height\"",
+          parser: &parse_cut_area/1,
+          required: false,
+          default: ""
         ]
       ]
     )
