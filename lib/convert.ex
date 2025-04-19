@@ -3,6 +3,8 @@ defmodule Convert do
   def convert!(%AppConfig{} = config) do
     image_list = Images.list_images(config) |> Images.sort_images()
 
+    IO.puts(inspect(image_list))
+
     args_list = create_arg_list(image_list, config)
     convert_cmd = &System.cmd(config.binaries.magick_path, &1)
     no_cpus = System.schedulers_online()
